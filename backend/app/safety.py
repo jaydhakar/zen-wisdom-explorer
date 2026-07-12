@@ -8,20 +8,25 @@ This is a safety net, not a diagnostic tool.
 from __future__ import annotations
 
 import re
+import unicodedata
 
 # English (incl. common transliterated Hindi) and Devanagari markers of
-# self-harm / suicidal ideation / acute despair. Devanagari has no case, and we
-# lowercase the haystack, so these match case-insensitively via substring.
+# self-harm / suicidal ideation / acute despair. Matching is case-insensitive
+# and nukta-insensitive (see _normalize), so a keyword written one way also
+# catches its nukta variants (e.g. ज़िंदगी vs जिंदगी).
 CRISIS_KEYWORDS: list[str] = [
     # English
     "suicide",
     "suicidal",
     "kill myself",
     "killing myself",
+    "kill me",
     "end my life",
+    "ending my life",
     "end it all",
     "want to die",
     "wanna die",
+    "want to end it",
     "take my life",
     "self harm",
     "self-harm",
@@ -39,17 +44,36 @@ CRISIS_KEYWORDS: list[str] = [
     "khudkushi",
     "marna chahta",
     "marna chahti",
+    "mar jaunga",
+    "mar jaana chahta",
     "jeena nahi chahta",
     "jeena nahi chahti",
-    # Devanagari
+    "zindagi khatm",
+    "jindagi khatam",
+    "jaan dena",
+    "jaan de dunga",
+    # Devanagari (write the nukta form; _normalize collapses both spellings)
     "आत्महत्या",
     "खुदकुशी",
     "मरना चाहता",
     "मरना चाहती",
+    "मर जाना चाहता",
+    "मर जाऊं",
+    "मर जाऊँ",
     "जीना नहीं चाहता",
     "जीना नहीं चाहती",
+    "जीना नहीं चाहत",  # catches चाहता/चाहती/चाहते variants
+    "ज़िंदगी खत्म",
+    "ज़िंदगी समाप्त",
+    "जीवन खत्म",
+    "जीवन समाप्त",
     "खुद को खत्म",
+    "खुद को मार",
+    "अपने आप को खत्म",
+    "अपने आप को मार",
     "अपनी जान ले",
+    "जान दे दूं",
+    "जान देना चाहता",
 ]
 
 _CRISIS_MESSAGES: dict[str, str] = {
@@ -72,12 +96,22 @@ _CRISIS_MESSAGES: dict[str, str] = {
 
 
 def _normalize(text: str) -> str:
-    return re.sub(r"\s+", " ", text.lower()).strip()
+    """Lowercase, collapse whitespace, and strip the Devanagari nukta so that
+    nukta and non-nukta spellings (e.g. ज़िंदगी / जिंदगी, ख़त्म / खत्म) match."""
+    text = text.lower()
+    text = unicodedata.normalize("NFD", text)
+    text = text.replace("़", "")  # combining Devanagari nukta
+    text = unicodedata.normalize("NFC", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+# Pre-normalize keywords through the same pipeline as the haystack.
+_NORMALIZED_KEYWORDS: list[str] = [_normalize(k) for k in CRISIS_KEYWORDS]
 
 
 def is_crisis(text: str) -> bool:
     haystack = _normalize(text)
-    return any(keyword in haystack for keyword in CRISIS_KEYWORDS)
+    return any(keyword in haystack for keyword in _NORMALIZED_KEYWORDS)
 
 
 def crisis_response(language: str) -> str:

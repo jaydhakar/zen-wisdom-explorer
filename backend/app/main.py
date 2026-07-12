@@ -12,6 +12,7 @@ import logging
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -37,14 +38,25 @@ settings = get_settings()
 # Per-IP rate limiting.
 limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_limit])
 
-app = FastAPI(title="Zen Wisdom Explorer API", version="1.0.0")
+
+class UTF8JSONResponse(JSONResponse):
+    """Declare charset explicitly so naive clients (e.g. Windows PowerShell 5.1)
+    decode Hindi/Devanagari responses correctly. Mobile clients handle UTF-8
+    regardless, but this is correct and harmless for everyone."""
+
+    media_type = "application/json; charset=utf-8"
+
+
+app = FastAPI(
+    title="Zen Wisdom Explorer API",
+    version="1.0.0",
+    default_response_class=UTF8JSONResponse,
+)
 app.state.limiter = limiter
 
 
 @app.exception_handler(RateLimitExceeded)
 async def _rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    from fastapi.responses import JSONResponse
-
     return JSONResponse(
         status_code=429,
         content={"detail": "Too many requests. Please slow down and try again shortly."},
