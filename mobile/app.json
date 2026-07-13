@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Zen Wisdom Explorer",
+    "slug": "zen-wisdom-explorer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "zenwisdom",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jaydhakar.zenwisdomexplorer",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Zen Wisdom Explorer uses the microphone so you can ask your questions by voice.",
+        "NSSpeechRecognitionUsageDescription": "Zen Wisdom Explorer uses speech recognition to turn your spoken question into text."
+      }
+    },
+    "android": {
+      "package": "com.jaydhakar.zenwisdomexplorer",
+      "adaptiveIcon": {
+        "backgroundColor": "#F3ECE2",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Zen Wisdom Explorer uses the microphone so you can ask your questions by voice.",
+          "speechRecognitionPermission": "Zen Wisdom Explorer uses speech recognition to turn your spoken question into text.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#F3ECE2"
+        }
+      ]
+    ]
+  }
+}
