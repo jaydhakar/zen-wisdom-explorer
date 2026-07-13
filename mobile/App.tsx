@@ -21,6 +21,7 @@ import { makeId } from "./src/format";
 import { colors, spacing } from "./src/theme";
 import type { Message } from "./src/types";
 import { sttLocale } from "./src/voice/locales";
+import { speakAnswer, stopSpeaking } from "./src/voice/tts";
 import { useSpeechToText } from "./src/voice/useSpeechToText";
 
 /**
@@ -58,6 +59,9 @@ export default function App() {
     };
   }, []);
 
+  // Stop any speech when the app is torn down.
+  useEffect(() => stopSpeaking, []);
+
   const handleSend = useCallback(async () => {
     const question = input.trim();
     if (!question || sending) return;
@@ -72,6 +76,8 @@ export default function App() {
         ...prev,
         { id: makeId(), role: "assistant", text: res.answer, book: res.book },
       ]);
+      // Auto-play the answer aloud in the selected language.
+      speakAnswer(res.answer, selected || "hi");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong. Please try again.";
       setMessages((prev) => [...prev, { id: makeId(), role: "assistant", text: msg, error: true }]);
