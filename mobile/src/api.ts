@@ -1,5 +1,5 @@
 /**
- * Typed client for the Zen Wisdom Explorer backend.
+ * Typed client for the Ask Thy Monk backend.
  *
  * The base URL comes from src/config (EXPO_PUBLIC_API_URL) and is never
  * hardcoded here.

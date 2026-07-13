@@ -16,7 +16,7 @@ export function Header({ languages, selected, onSelect }: Props) {
     <View style={styles.container}>
       <View style={styles.titleRow}>
         <Text style={styles.mark}>🕉️</Text>
-        <Text style={styles.title}>Zen Wisdom</Text>
+        <Text style={styles.title}>Ask Thy Monk</Text>
       </View>
       <LanguageToggle languages={languages} selected={selected} onSelect={onSelect} />
     </View>

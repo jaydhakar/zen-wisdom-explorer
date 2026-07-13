@@ -1,1 +1,1 @@
-"""Zen Wisdom Explorer backend package."""
+"""Ask Thy Monk backend package."""

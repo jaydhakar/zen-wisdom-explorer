@@ -1,4 +1,4 @@
-# Zen Wisdom Explorer — Backend
+# Ask Thy Monk — Backend
 
 FastAPI RAG service over a Pinecone index of ~90 Hindi Osho books. Given a
 question, it embeds the question, retrieves the most relevant passages from the

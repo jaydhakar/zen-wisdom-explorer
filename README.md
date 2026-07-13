@@ -1,4 +1,4 @@
-# Zen Wisdom Explorer
+# Ask Thy Monk
 
 A cross-platform (iOS + Android) mobile app that lets you ask questions and
 receive short, spoken-friendly answers drawn from a corpus of ~90 Hindi Osho

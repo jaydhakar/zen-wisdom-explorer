@@ -1,22 +1,22 @@
 {
   "expo": {
-    "name": "Zen Wisdom",
-    "slug": "zen-wisdom-explorer",
+    "name": "Ask Thy Monk",
+    "slug": "askthymonk",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "zenwisdom",
+    "scheme": "askthymonk",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jaydhakar.zenwisdomexplorer",
+      "bundleIdentifier": "com.jaydhakar.askthymonk",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "Zen Wisdom Explorer uses the microphone so you can ask your questions by voice.",
-        "NSSpeechRecognitionUsageDescription": "Zen Wisdom Explorer uses speech recognition to turn your spoken question into text."
+        "NSMicrophoneUsageDescription": "Ask Thy Monk uses the microphone so you can ask your questions by voice.",
+        "NSSpeechRecognitionUsageDescription": "Ask Thy Monk uses speech recognition to turn your spoken question into text."
       }
     },
     "android": {
-      "package": "com.jaydhakar.zenwisdomexplorer",
+      "package": "com.jaydhakar.askthymonk",
       "adaptiveIcon": {
         "backgroundColor": "#F3ECE2",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -35,8 +35,8 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Zen Wisdom Explorer uses the microphone so you can ask your questions by voice.",
-          "speechRecognitionPermission": "Zen Wisdom Explorer uses speech recognition to turn your spoken question into text.",
+          "microphonePermission": "Ask Thy Monk uses the microphone so you can ask your questions by voice.",
+          "speechRecognitionPermission": "Ask Thy Monk uses speech recognition to turn your spoken question into text.",
           "androidSpeechServicePackages": [
             "com.google.android.googlequicksearchbox"
           ]

@@ -1,4 +1,4 @@
-"""Zen Wisdom Explorer — FastAPI backend.
+"""Ask Thy Monk — FastAPI backend.
 
 A RAG chat interface over a Pinecone index of ~90 Hindi Osho books. Endpoints:
   GET  /health         — liveness probe
@@ -31,7 +31,7 @@ from .services.embeddings import embed_question
 from .services.llm import generate_answer
 from .services.pinecone_client import query_namespace
 
-logger = logging.getLogger("zen_wisdom")
+logger = logging.getLogger("askthymonk")
 
 settings = get_settings()
 
@@ -48,7 +48,7 @@ class UTF8JSONResponse(JSONResponse):
 
 
 app = FastAPI(
-    title="Zen Wisdom Explorer API",
+    title="Ask Thy Monk API",
     version="1.0.0",
     default_response_class=UTF8JSONResponse,
 )

@@ -1,5 +1,5 @@
 [project]
-name = "zen-wisdom-backend"
+name = "askthymonk-backend"
 version = "1.0.0"
 description = "RAG chat backend (FastAPI) over a Pinecone index of Hindi Osho books."
 requires-python = ">=3.11"

@@ -1,4 +1,4 @@
-"""Encoding-safe smoke test for a running Zen Wisdom Explorer backend.
+"""Encoding-safe smoke test for a running Ask Thy Monk backend.
 
 Windows PowerShell 5.1 mangles Devanagari on both stdin and stdout, which makes
 curl/Invoke-RestMethod an unreliable way to test the Hindi paths. This script
