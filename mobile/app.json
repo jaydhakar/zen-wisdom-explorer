@@ -50,6 +50,12 @@
           "backgroundColor": "#F3ECE2"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "89938dbf-3116-45a5-9405-6b44e21c1e93"
+      }
+    },
+    "owner": "jaydhakar"
   }
 }
