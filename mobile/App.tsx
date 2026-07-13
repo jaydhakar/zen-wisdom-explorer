@@ -20,6 +20,8 @@ import { API_BASE_URL } from "./src/config";
 import { makeId } from "./src/format";
 import { colors, spacing } from "./src/theme";
 import type { Message } from "./src/types";
+import { sttLocale } from "./src/voice/locales";
+import { useSpeechToText } from "./src/voice/useSpeechToText";
 
 /**
  * Milestone 3: full chat UI — message list, user/assistant bubbles with cited
@@ -78,10 +80,11 @@ export default function App() {
     }
   }, [input, sending, selected]);
 
-  const handleMicPress = useCallback(() => {
-    // Placeholder until milestone 4 wires expo-speech-recognition.
-    Alert.alert("Voice input", "Voice input arrives in the next milestone.");
-  }, []);
+  const { listening, toggle: toggleMic } = useSpeechToText({
+    lang: sttLocale(selected),
+    onTranscript: setInput,
+    onError: (message) => Alert.alert("Voice input", message),
+  });
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -108,8 +111,8 @@ export default function App() {
             value={input}
             onChangeText={setInput}
             onSend={handleSend}
-            onMicPress={handleMicPress}
-            listening={false}
+            onMicPress={toggleMic}
+            listening={listening}
             sending={sending}
           />
         </KeyboardAvoidingView>
