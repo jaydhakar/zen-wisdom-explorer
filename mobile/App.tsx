@@ -14,8 +14,10 @@ import {
 
 import { askWisdom, fetchLanguages, type LanguageInfo } from "./src/api";
 import { ChatInput } from "./src/components/ChatInput";
+import { Drawer } from "./src/components/Drawer";
 import { Header } from "./src/components/Header";
 import { MessageList } from "./src/components/MessageList";
+import { Welcome } from "./src/components/Welcome";
 import { API_BASE_URL } from "./src/config";
 import { makeId } from "./src/format";
 import { colors, spacing } from "./src/theme";
@@ -25,9 +27,10 @@ import { speakAnswer, stopSpeaking } from "./src/voice/tts";
 import { useSpeechToText } from "./src/voice/useSpeechToText";
 
 /**
- * Milestone 3: full chat UI — message list, user/assistant bubbles with cited
- * book, input row (mic placeholder until m4) + send, and an in-flight
- * indicator. Sends questions to the backend via askWisdom.
+ * Dark, gold-accented chat app. Shows the Welcome/empty state (hero + greeting
+ * + suggestions) until the first message, then the scrolling thread. Header,
+ * input bar, and side drawer are persistent. Voice/language/backend logic is
+ * unchanged — this file only orchestrates state and layout.
  */
 export default function App() {
   const [languages, setLanguages] = useState<LanguageInfo[]>([]);
@@ -38,6 +41,7 @@ export default function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -86,6 +90,12 @@ export default function App() {
     }
   }, [input, sending, selected]);
 
+  const handleNewConversation = useCallback(() => {
+    stopSpeaking();
+    setMessages([]);
+    setInput("");
+  }, []);
+
   const { listening, toggle: toggleMic } = useSpeechToText({
     lang: sttLocale(selected),
     onTranscript: setInput,
@@ -94,11 +104,16 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header languages={languages} selected={selected} onSelect={setSelected} />
+      <Header
+        languages={languages}
+        selected={selected}
+        onSelect={setSelected}
+        onMenuPress={() => setDrawerOpen(true)}
+      />
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color={colors.clay} />
+          <ActivityIndicator color={colors.gold} />
           <Text style={styles.muted}>Loading…</Text>
         </View>
       ) : loadError ? (
@@ -112,7 +127,11 @@ export default function App() {
           style={styles.flex}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          <MessageList messages={messages} sending={sending} />
+          {messages.length === 0 ? (
+            <Welcome onSelectSuggestion={setInput} />
+          ) : (
+            <MessageList messages={messages} sending={sending} />
+          )}
           <ChatInput
             value={input}
             onChangeText={setInput}
@@ -124,7 +143,13 @@ export default function App() {
         </KeyboardAvoidingView>
       )}
 
-      <StatusBar style="dark" />
+      <Drawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onNewConversation={handleNewConversation}
+      />
+
+      <StatusBar style="light" />
     </SafeAreaView>
   );
 }
@@ -153,7 +178,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: colors.danger,
+    color: colors.errorText,
     marginBottom: spacing.xs,
   },
   url: {

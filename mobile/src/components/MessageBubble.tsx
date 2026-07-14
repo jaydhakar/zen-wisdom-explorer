@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: radius.sm,
   },
   errorBubble: {
-    backgroundColor: "#F3DCD5",
+    backgroundColor: colors.errorBubble,
   },
   text: {
     fontSize: 16,
@@ -67,12 +67,12 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   errorText: {
-    color: colors.danger,
+    color: colors.errorText,
   },
   book: {
     marginTop: spacing.xs + 2,
     fontSize: 12.5,
     fontStyle: "italic",
-    color: colors.purpleDeep,
+    color: colors.citation,
   },
 });

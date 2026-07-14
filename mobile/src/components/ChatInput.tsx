@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Animated, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { colors, radius, spacing } from "../theme";
 
@@ -23,16 +24,44 @@ export function ChatInput({
 }: Props) {
   const canSend = value.trim().length > 0 && !sending;
 
+  // Soft pulsing ring around the mic while actively listening.
+  const [pulse] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (!listening) {
+      pulse.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.timing(pulse, { toValue: 1, duration: 1200, useNativeDriver: true })
+    );
+    loop.start();
+    return () => {
+      loop.stop();
+      pulse.setValue(0);
+    };
+  }, [listening, pulse]);
+
+  const ringScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.9] });
+  const ringOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0] });
+
   return (
     <View style={styles.container}>
-      <Pressable
-        onPress={onMicPress}
-        accessibilityRole="button"
-        accessibilityLabel={listening ? "Stop listening" : "Start voice input"}
-        style={[styles.micButton, listening && styles.micButtonActive]}
-      >
-        <Text style={styles.micIcon}>{listening ? "⏹" : "🎤"}</Text>
-      </Pressable>
+      <View style={styles.micWrap}>
+        {listening ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.ring, { transform: [{ scale: ringScale }], opacity: ringOpacity }]}
+          />
+        ) : null}
+        <Pressable
+          onPress={onMicPress}
+          accessibilityRole="button"
+          accessibilityLabel={listening ? "Stop listening" : "Start voice input"}
+          style={[styles.micButton, listening && styles.micButtonActive]}
+        >
+          <Text style={styles.micIcon}>{listening ? "⏹" : "🎤"}</Text>
+        </Pressable>
+      </View>
 
       <TextInput
         style={styles.input}
@@ -54,7 +83,7 @@ export function ChatInput({
         accessibilityLabel="Send"
         style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
       >
-        <Text style={styles.sendIcon}>➤</Text>
+        <Text style={[styles.sendIcon, !canSend && styles.sendIconDisabled]}>➤</Text>
       </Pressable>
     </View>
   );
@@ -67,20 +96,34 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+    borderTopColor: colors.borderSubtle,
+  },
+  micWrap: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ring: {
+    position: "absolute",
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    borderWidth: 2,
+    borderColor: colors.gold,
   },
   micButton: {
     width: 44,
     height: 44,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.gold,
     alignItems: "center",
     justifyContent: "center",
   },
   micButtonActive: {
-    backgroundColor: colors.clay,
+    backgroundColor: colors.goldDim,
   },
   micIcon: {
     fontSize: 18,
@@ -92,10 +135,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm + 2,
     paddingBottom: spacing.sm + 2,
-    backgroundColor: colors.background,
+    backgroundColor: colors.inputBg,
     borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderColor: colors.borderSubtle,
     fontSize: 16,
     color: colors.textPrimary,
   },
@@ -103,16 +146,19 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.pill,
-    backgroundColor: colors.clay,
+    backgroundColor: colors.gold,
     alignItems: "center",
     justifyContent: "center",
   },
   sendButtonDisabled: {
-    backgroundColor: colors.border,
+    backgroundColor: colors.borderSubtle,
   },
   sendIcon: {
     fontSize: 18,
-    color: colors.onClay,
+    color: colors.onGold,
     marginLeft: 2,
+  },
+  sendIconDisabled: {
+    color: colors.textMuted,
   },
 });

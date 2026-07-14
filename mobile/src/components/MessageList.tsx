@@ -10,22 +10,12 @@ type Props = {
   sending: boolean;
 };
 
+// The zero-message state is handled by the Welcome screen (see App). This list
+// renders only once a conversation is active.
 export function MessageList({ messages, sending }: Props) {
   const listRef = useRef<FlatList<Message>>(null);
 
   const scrollToEnd = () => listRef.current?.scrollToEnd({ animated: true });
-
-  if (messages.length === 0 && !sending) {
-    return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyMark}>🕉️</Text>
-        <Text style={styles.emptyTitle}>Ask, and listen within</Text>
-        <Text style={styles.emptyHint}>
-          Pose a question about the mind, meditation, or life, and receive a short reflection.
-        </Text>
-      </View>
-    );
-  }
 
   return (
     <FlatList
@@ -42,7 +32,7 @@ export function MessageList({ messages, sending }: Props) {
           <View style={styles.thinkingRow}>
             <Text style={styles.avatar}>🕉️</Text>
             <View style={styles.thinkingBubble}>
-              <ActivityIndicator size="small" color={colors.purple} />
+              <ActivityIndicator size="small" color={colors.gold} />
             </View>
           </View>
         ) : null
@@ -55,28 +45,6 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
     paddingBottom: spacing.xl,
-  },
-  empty: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
-  },
-  emptyMark: {
-    fontSize: 40,
-    marginBottom: spacing.xs,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: colors.purpleDeep,
-  },
-  emptyHint: {
-    fontSize: 14,
-    color: colors.textMuted,
-    textAlign: "center",
-    lineHeight: 20,
   },
   thinkingRow: {
     flexDirection: "row",

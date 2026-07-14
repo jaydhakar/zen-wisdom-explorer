@@ -40,8 +40,10 @@ export function LanguageToggle({ languages, selected, onSelect }: Props) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.pillBg,
     borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
     padding: 3,
     gap: 2,
   },
@@ -51,14 +53,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   pillActive: {
-    backgroundColor: colors.clay,
+    backgroundColor: colors.gold,
   },
   label: {
     fontSize: 13,
     fontWeight: "600",
-    color: colors.textSecondary,
+    color: colors.textMuted,
   },
   labelActive: {
-    color: colors.onClay,
+    color: colors.onGold,
   },
 });

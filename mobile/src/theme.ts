@@ -1,33 +1,48 @@
 /**
- * Shared visual language: a soft, meditative palette (warm clays, creams, and
- * muted purples). Centralized so every screen and component stays consistent.
+ * Visual language: a dark, gold-accented, cinematic theme.
+ *
+ * Near-black navy backgrounds with warm amber-gold accents, tuned to sit under
+ * the hero illustration (assets/hero-monk.jpg). All text/background pairs here
+ * were verified against WCAG AA (>= 4.5:1 for normal text) before use.
  */
+
+import { Platform } from "react-native";
 
 export const colors = {
   // Backgrounds
-  background: "#F3ECE2", // warm cream
-  surface: "#FBF7F0", // lighter cream for cards/inputs
-  surfaceAlt: "#EFE7DA",
+  background: "#0B0E15", // near-black navy
+  backgroundElevated: "#12161F",
+  surface: "#151A24",
 
-  // Brand / accents
-  clay: "#C58C6A", // terracotta clay — primary action
-  clayDeep: "#A9714F",
-  purple: "#8A7CA8", // soft muted purple — secondary accent
-  purpleDeep: "#4A3F5C", // deep aubergine — headings
+  // Gold accents
+  gold: "#E3B15C",
+  goldDim: "#C9974A",
 
-  // Bubbles
-  userBubble: "#E8D5C4", // soft clay
-  assistantBubble: "#E7E1F0", // soft lavender
+  // Chat bubbles (distinct, legible on dark)
+  assistantBubble: "#1C2230", // cool dark slate
+  userBubble: "#3A2E1C", // warm dark bronze
 
   // Text
-  textPrimary: "#3E3646",
-  textSecondary: "#6E6478",
-  textMuted: "#9B8E7E",
-  onClay: "#FFFFFF",
+  textPrimary: "#F3ECE0", // warm off-white  (16.4:1 on bg)
+  textSecondary: "#C8C0B2", // (10.7:1 on bg)
+  textMuted: "#9A9385", // (6.3:1 on bg)
+  citation: "#B3A98F", // muted, not stark white  (6.8:1 on assistant bubble)
+  onGold: "#141007", // dark text/icon on gold fills
 
   // Feedback
-  danger: "#B4553F",
-  border: "#E0D5C6",
+  errorBubble: "#2E1B17",
+  errorText: "#EA9A86",
+
+  // Lines / borders / surfaces
+  border: "rgba(227,177,92,0.22)", // faint gold
+  borderSubtle: "rgba(255,255,255,0.09)",
+  inputBg: "rgba(255,255,255,0.06)",
+  pillBg: "rgba(255,255,255,0.05)",
+  overlay: "rgba(0,0,0,0.6)",
+} as const;
+
+export const fonts = {
+  serif: Platform.select({ ios: "Georgia", android: "serif", default: "serif" }) as string,
 };
 
 export const spacing = {

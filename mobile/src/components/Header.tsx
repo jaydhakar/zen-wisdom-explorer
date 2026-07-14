@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import type { LanguageInfo } from "../api";
 import { colors, spacing } from "../theme";
@@ -8,16 +8,25 @@ type Props = {
   languages: LanguageInfo[];
   selected: string;
   onSelect: (code: string) => void;
+  onMenuPress: () => void;
 };
 
-/** App header: title + the backend-driven language toggle. */
-export function Header({ languages, selected, onSelect }: Props) {
+/** Persistent header: hamburger menu (left) + backend-driven language toggle (right). */
+export function Header({ languages, selected, onSelect, onMenuPress }: Props) {
   return (
     <View style={styles.container}>
-      <View style={styles.titleRow}>
-        <Text style={styles.mark}>🕉️</Text>
-        <Text style={styles.title}>Ask Thy Monk</Text>
-      </View>
+      <Pressable
+        onPress={onMenuPress}
+        accessibilityRole="button"
+        accessibilityLabel="Open menu"
+        hitSlop={10}
+        style={({ pressed }) => [styles.menu, pressed && styles.menuPressed]}
+      >
+        <View style={styles.line} />
+        <View style={styles.line} />
+        <View style={styles.line} />
+      </Pressable>
+
       <LanguageToggle languages={languages} selected={selected} onSelect={onSelect} />
     </View>
   );
@@ -30,23 +39,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
   },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    flexShrink: 1,
+  menu: {
+    width: 28,
+    height: 22,
+    justifyContent: "space-between",
+    paddingVertical: 3,
   },
-  mark: {
-    fontSize: 20,
+  menuPressed: {
+    opacity: 0.6,
   },
-  title: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: colors.purpleDeep,
-    flexShrink: 1,
+  line: {
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: colors.gold,
   },
 });
