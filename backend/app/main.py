@@ -23,13 +23,13 @@ from .config import (
     get_settings,
     is_supported,
     language_label,
-    resolve_namespace,
+    retrieval_target,
 )
 from .models import LanguagesResponse, WisdomRequest, WisdomResponse
 from .safety import crisis_response, is_crisis
 from .services.embeddings import embed_question
 from .services.llm import generate_answer
-from .services.pinecone_client import query_namespace
+from .services.pinecone_client import query_index
 
 logger = logging.getLogger("askthymonk")
 
@@ -109,22 +109,25 @@ def wisdom(payload: WisdomRequest, request: Request) -> WisdomResponse:
     if is_crisis(question):
         return WisdomResponse(answer=crisis_response(language), book=None, language=language)
 
-    namespace = resolve_namespace(language)
+    # Select the embedding model AND the Pinecone account/index as one matched
+    # pair for this language — embedding must use the same model the target index
+    # was built with, or the query fails with a dimension mismatch.
+    target = retrieval_target(language)
 
     try:
-        # Step 1: embed with the same model the index was built with.
-        vector = embed_question(question)
-        # Step 2: retrieve top_k from the resolved namespace.
-        matches = query_namespace(vector, namespace=namespace, top_k=settings.top_k)
+        # Step 1: embed the question with the language's model.
+        vector = embed_question(question, target.embedding_model)
+        # Step 2: query that same language's Pinecone account/index (default ns).
+        matches = query_index(target.pinecone_api_key, target.pinecone_index, vector, settings.top_k)
     except RuntimeError as exc:
-        # Missing configuration (e.g. an API key not set).
+        # Missing configuration (e.g. an API key or index not set).
         logger.error("Configuration error: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001 — surface upstream failures as 502
         logger.exception("Upstream retrieval/embedding failure")
         raise HTTPException(status_code=502, detail="Upstream service error during retrieval.") from exc
 
-    # Graceful fallback for an empty namespace (e.g. "en" today) or no matches.
+    # Graceful fallback when nothing relevant is retrieved.
     if not matches:
         return WisdomResponse(answer=FALLBACK_ANSWER, book=None, language=language)
 

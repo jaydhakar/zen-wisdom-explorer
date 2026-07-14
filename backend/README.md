@@ -136,11 +136,14 @@ This path never touches OpenAI or Pinecone, so it works even without API keys.
 
 | Env var | Default | Purpose |
 |---|---|---|
-| `OPENAI_API_KEY` | — | OpenAI auth (required) |
-| `PINECONE_API_KEY` | — | Pinecone auth (required) |
-| `PINECONE_INDEX` | — | Index name (required) |
-| `EMBEDDING_MODEL` | `text-embedding-3-large` | Query embedding model |
+| `OPENAI_API_KEY` | — | OpenAI auth, shared by both languages (required) |
 | `CHAT_MODEL` | `gpt-4o-mini` | Answer generation model |
+| `PINECONE_API_KEY` | — | **Hindi** Pinecone account auth (required) |
+| `PINECONE_INDEX` | — | **Hindi** index name (required) |
+| `EMBEDDING_MODEL` | `text-embedding-3-large` | **Hindi** query embedding model (3072-dim) |
+| `PINECONE_API_KEY_EN` | — | **English** Pinecone account auth (separate account) |
+| `PINECONE_INDEX_EN` | `askthymonk-en` | **English** index name |
+| `EMBEDDING_MODEL_EN` | `text-embedding-3-small` | **English** query embedding model (1536-dim) |
 | `SUPPORTED_LANGUAGES` | `["hi"]` | Languages the app may offer |
 | `CORS_ORIGINS` | `*` | Allowed CORS origins |
 | `RATE_LIMIT` | `20/minute` | Per-IP limit on `/api/wisdom` |
@@ -165,9 +168,20 @@ local dev). This deters casual direct hits on a deployed URL, but note that a
 secret shipped inside a public mobile app is extractable — it is not a
 substitute for real authentication.
 
-## How language maps to Pinecone
+## How language maps to retrieval
 
-| `language` | Namespace | Contents |
-|---|---|---|
-| `hi` | *(default namespace, `""`)* | ~90 Hindi Osho books |
-| `en` | `en` | reserved for future English books (empty today) |
+Hindi and English are stored in **two separate Pinecone accounts** — done to use
+each account's free 2GB tier rather than paying for Pinecone Standard while the
+app is pre-commercial. Each language therefore has its own account/index **and**
+its own embedding model + dimension. The request flow embeds first, then queries,
+so the language selects the embedding model **and** the matching index as one
+pair (`RetrievalTarget`) — they are never mixed.
+
+| `language` | Embedding model | Pinecone account / index | Namespace | Contents |
+|---|---|---|---|---|
+| `hi` | `text-embedding-3-large` (3072-dim) | original account / `PINECONE_INDEX` | default | ~75k Hindi vectors |
+| `en` | `text-embedding-3-small` (1536-dim) | separate account / `askthymonk-en` | default | 2,607 English vectors |
+
+> Pairing the wrong model with the wrong index (e.g. a 1536-dim English embedding
+> against the 3072-dim Hindi index) fails with a **dimension-mismatch** error —
+> which is why the model and index are resolved together, per language.
