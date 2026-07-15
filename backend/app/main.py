@@ -25,7 +25,8 @@ from .config import (
     language_label,
     retrieval_target,
 )
-from .models import LanguagesResponse, WisdomRequest, WisdomResponse
+from .metrics import record_turn
+from .models import MAX_HISTORY_TURNS, LanguagesResponse, WisdomRequest, WisdomResponse
 from .safety import crisis_response, is_crisis
 from .services.embeddings import embed_question
 from .services.llm import generate_answer
@@ -104,9 +105,19 @@ def wisdom(payload: WisdomRequest, request: Request) -> WisdomResponse:
     if not question:
         raise HTTPException(status_code=422, detail="question must not be empty")
 
+    # Cap conversation history server-side (never trust the client's own limit).
+    history = [{"question": h.question, "answer": h.answer} for h in payload.conversation_history]
+    history = history[-MAX_HISTORY_TURNS:]
+
+    # Engagement metric (counts only, no text): this request's turn number.
+    record_turn(len(history) + 1)
+
     # Safety first: a distress/crisis question skips RAG and the Osho persona
-    # entirely and returns a direct, caring message with resources.
-    if is_crisis(question):
+    # entirely and returns a direct, caring message with resources. Scan the
+    # ACCUMULATED conversation (prior user turns + this message), so distress
+    # built up gradually across several messages is still caught.
+    crisis_scan_text = " ".join([h["question"] for h in history] + [question])
+    if is_crisis(crisis_scan_text):
         return WisdomResponse(answer=crisis_response(language), book=None, language=language)
 
     # Select the embedding model AND the Pinecone account/index as one matched
@@ -133,8 +144,9 @@ def wisdom(payload: WisdomRequest, request: Request) -> WisdomResponse:
         return WisdomResponse(answer=FALLBACK_ANSWER, book=None, language=language)
 
     try:
-        # Step 4: ground an answer in the retrieved passages.
-        answer = generate_answer(question, matches, language)
+        # Step 4: ground an answer in the retrieved passages (with prior turns
+        # as conversational context; retrieval above still used only `question`).
+        answer = generate_answer(question, matches, language, history=history)
     except Exception as exc:  # noqa: BLE001
         logger.exception("Upstream LLM failure")
         raise HTTPException(status_code=502, detail="Upstream service error during generation.") from exc

@@ -19,7 +19,7 @@ import { Header } from "./src/components/Header";
 import { MessageList } from "./src/components/MessageList";
 import { Welcome } from "./src/components/Welcome";
 import { API_BASE_URL } from "./src/config";
-import { makeId } from "./src/format";
+import { makeId, messagesToHistory } from "./src/format";
 import { colors, spacing } from "./src/theme";
 import type { Message } from "./src/types";
 import { sttLocale } from "./src/voice/locales";
@@ -70,12 +70,16 @@ export default function App() {
     const question = input.trim();
     if (!question || sending) return;
 
+    // Prior turns of THIS conversation (before adding the new message), for
+    // follow-up context. The API layer trims to the last 4.
+    const history = messagesToHistory(messages);
+
     setMessages((prev) => [...prev, { id: makeId(), role: "user", text: question }]);
     setInput("");
     setSending(true);
 
     try {
-      const res = await askWisdom(question, selected || "hi");
+      const res = await askWisdom(question, selected || "hi", history);
       setMessages((prev) => [
         ...prev,
         { id: makeId(), role: "assistant", text: res.answer, book: res.book },
@@ -88,7 +92,7 @@ export default function App() {
     } finally {
       setSending(false);
     }
-  }, [input, sending, selected]);
+  }, [input, sending, selected, messages]);
 
   const handleNewConversation = useCallback(() => {
     stopSpeaking();

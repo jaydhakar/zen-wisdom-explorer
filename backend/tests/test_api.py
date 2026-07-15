@@ -42,6 +42,25 @@ def test_empty_question_rejected(monkeypatch) -> None:
     assert res.status_code == 422
 
 
+def test_crisis_detected_across_conversation_history(monkeypatch) -> None:
+    # The newest message is benign; distress appears in an earlier turn. The
+    # crisis check must scan the accumulated history + new message together.
+    monkeypatch.setattr(main.settings, "api_shared_secret", "")
+    body = {
+        "question": "and how should I spend my evenings?",
+        "language": "en",
+        "conversation_history": [
+            {"question": "lately everything feels heavy", "answer": "I hear you."},
+            {"question": "honestly I want to end my life", "answer": "..."},
+        ],
+    }
+    res = client.post("/api/wisdom", json=body)
+    assert res.status_code == 200
+    body_out = res.json()
+    assert body_out["book"] is None
+    assert "1800-599-0019" in body_out["answer"]  # routed to crisis resources
+
+
 def test_secret_gate_rejects_without_header(monkeypatch) -> None:
     monkeypatch.setattr(main.settings, "api_shared_secret", "s3cret")
     res = client.post("/api/wisdom", json={"question": CRISIS_QUESTION, "language": "hi"})

@@ -18,6 +18,14 @@ export type WisdomResponse = {
   language: string;
 };
 
+export type QAPair = {
+  question: string;
+  answer: string;
+};
+
+/** Max prior turns to send; the backend also caps at 4 defensively. */
+export const MAX_HISTORY_TURNS = 4;
+
 /** Error carrying an HTTP status when the failure came from the server. */
 export class ApiError extends Error {
   status?: number;
@@ -77,10 +85,21 @@ export async function fetchLanguages(): Promise<LanguageInfo[]> {
   return data.languages ?? [];
 }
 
-/** POST /api/wisdom — ask a question in the selected language. */
-export async function askWisdom(question: string, language: string): Promise<WisdomResponse> {
+/**
+ * POST /api/wisdom — ask a question in the selected language, optionally with
+ * recent conversation turns for follow-up context (last 4; backend re-caps).
+ */
+export async function askWisdom(
+  question: string,
+  language: string,
+  conversationHistory: QAPair[] = []
+): Promise<WisdomResponse> {
   return request<WisdomResponse>("/api/wisdom", {
     method: "POST",
-    body: JSON.stringify({ question, language }),
+    body: JSON.stringify({
+      question,
+      language,
+      conversation_history: conversationHistory.slice(-MAX_HISTORY_TURNS),
+    }),
   });
 }
