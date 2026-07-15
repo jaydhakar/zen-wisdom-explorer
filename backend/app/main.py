@@ -30,7 +30,7 @@ from .metrics import record_turn
 from .models import MAX_HISTORY_TURNS, LanguagesResponse, WisdomRequest, WisdomResponse
 from .safety import crisis_response, is_crisis
 from .services.embeddings import embed_question
-from .services.llm import generate_answer
+from .services.llm import generate_answer, reformulate_query
 from .services.pinecone_client import query_index
 
 logger = logging.getLogger("askthymonk")
@@ -126,9 +126,22 @@ def wisdom(payload: WisdomRequest, request: Request) -> WisdomResponse:
     # was built with, or the query fails with a dimension mismatch.
     target = retrieval_target(language)
 
+    # Follow-up handling: on turn 2+, rewrite the (possibly vague) question into a
+    # standalone query so a follow-up like "what does that mean?" retrieves on its
+    # actual topic. First messages skip this entirely — no extra cost or change.
+    # Only the RETRIEVAL query changes; answer generation still gets the original
+    # question + history below. Degrade gracefully to the original on failure.
+    retrieval_query = question
+    if history:
+        try:
+            retrieval_query = reformulate_query(question, history)
+        except Exception:  # noqa: BLE001 — never let the extra call break the request
+            logger.warning("Query reformulation failed; retrieving on the original question.")
+            retrieval_query = question
+
     try:
-        # Step 1: embed the question with the language's model.
-        vector = embed_question(question, target.embedding_model)
+        # Step 1: embed the (reformulated) retrieval query with the language's model.
+        vector = embed_question(retrieval_query, target.embedding_model)
         # Step 2: query that same language's Pinecone account/index (default ns),
         # with that language's top_k.
         matches = query_index(target.pinecone_api_key, target.pinecone_index, vector, target.top_k)

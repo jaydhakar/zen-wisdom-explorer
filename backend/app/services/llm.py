@@ -64,3 +64,42 @@ def generate_answer(
         messages=messages,
     )
     return (response.choices[0].message.content or "").strip()
+
+
+_REWRITE_SYSTEM = (
+    "You rewrite a user's latest question into a STANDALONE search query. Replace every "
+    "referential word (it, this, that, its, इस, यह, उस, इसका, उसका, इसे, etc.) with the "
+    "specific thing it refers to from the recent conversation, so the question is fully "
+    "self-contained on its own. Keep the SAME language as the user's latest question. "
+    "Output ONLY the rewritten question — no quotes, no preamble, no explanation.\n\n"
+    "Example (English):\n"
+    "Conversation: Q: What is meditation? A: Meditation is turning inward.\n"
+    "Latest: What did you mean by that?\n"
+    "Rewrite: What does it mean that meditation is turning inward?\n\n"
+    "Example (Hindi):\n"
+    "Conversation: Q: मन को शांत कैसे करें? A: भीतर के अवरोधों को समझें और स्वीकार करें।\n"
+    "Latest: इसका क्या अर्थ है?\n"
+    "Rewrite: मन को शांत करने का क्या अर्थ है?"
+)
+
+
+def reformulate_query(question: str, history: list[dict[str, str]]) -> str:
+    """Rewrite a follow-up into a standalone question (for retrieval only), using
+    the last 1-2 turns for context. Cheap: short prompt, short output, temp 0.
+    Falls back to the original question if the model returns nothing usable.
+    """
+    settings = get_settings()
+    recent = history[-2:]
+    convo = "\n".join(f"Q: {t['question']}\nA: {t['answer']}" for t in recent)
+    user_content = f"Recent conversation:\n{convo}\n\nLatest question: {question}"
+
+    response = _client().chat.completions.create(
+        model=settings.chat_model,
+        temperature=0,
+        messages=[
+            {"role": "system", "content": _REWRITE_SYSTEM},
+            {"role": "user", "content": user_content},
+        ],
+    )
+    rewritten = (response.choices[0].message.content or "").strip()
+    return rewritten or question

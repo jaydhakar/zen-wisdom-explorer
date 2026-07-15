@@ -72,6 +72,56 @@ def test_crisis_detected_across_conversation_history(monkeypatch) -> None:
     assert "1800-599-0019" in body_out["answer"]  # routed to crisis resources
 
 
+def test_reformulated_query_is_used_for_retrieval_when_history(monkeypatch) -> None:
+    monkeypatch.setattr(main.settings, "api_shared_secret", "")
+    captured = {}
+
+    def fake_embed(text, model):
+        captured["embed_text"] = text
+        return [0.0, 0.1]
+
+    monkeypatch.setattr(main, "embed_question", fake_embed)
+    monkeypatch.setattr(main, "query_index", lambda *a, **k: [{"score": 0.5, "book": "B", "text": "t"}])
+    monkeypatch.setattr(main, "reformulate_query", lambda q, h: "STANDALONE REWRITE")
+    monkeypatch.setattr(main, "generate_answer", lambda *a, **k: "an answer")
+
+    res = client.post(
+        "/api/wisdom",
+        json={
+            "question": "what does that mean?",
+            "language": "en",
+            "conversation_history": [{"question": "what is meditation?", "answer": "It is stillness."}],
+        },
+    )
+    assert res.status_code == 200
+    # Retrieval embedded the rewritten query, NOT the vague follow-up.
+    assert captured["embed_text"] == "STANDALONE REWRITE"
+
+
+def test_no_reformulation_on_first_message(monkeypatch) -> None:
+    monkeypatch.setattr(main.settings, "api_shared_secret", "")
+    captured = {"reformulated": False}
+
+    def fake_embed(text, model):
+        captured["embed_text"] = text
+        return [0.0, 0.1]
+
+    def spy_reformulate(q, h):
+        captured["reformulated"] = True
+        return "SHOULD NOT BE USED"
+
+    monkeypatch.setattr(main, "embed_question", fake_embed)
+    monkeypatch.setattr(main, "query_index", lambda *a, **k: [{"score": 0.5, "book": "B", "text": "t"}])
+    monkeypatch.setattr(main, "reformulate_query", spy_reformulate)
+    monkeypatch.setattr(main, "generate_answer", lambda *a, **k: "an answer")
+
+    res = client.post("/api/wisdom", json={"question": "what is meditation?", "language": "en"})
+    assert res.status_code == 200
+    # First message: no reformulation call, retrieval used the original question.
+    assert captured["reformulated"] is False
+    assert captured["embed_text"] == "what is meditation?"
+
+
 @pytest.mark.parametrize("language", ["hi", "en"])
 def test_sentinel_maps_to_localized_fallback_and_nulls_book(monkeypatch, language) -> None:
     # The model "declines" by emitting the sentinel; even a translated/decorated
