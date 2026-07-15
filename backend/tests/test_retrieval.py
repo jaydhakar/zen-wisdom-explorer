@@ -9,28 +9,32 @@ def _set_targets(monkeypatch):
     monkeypatch.setattr(s, "embedding_model", "hi-large")
     monkeypatch.setattr(s, "pinecone_api_key", "HI_KEY")
     monkeypatch.setattr(s, "pinecone_index", "hindi-index")
+    monkeypatch.setattr(s, "top_k", 3)
     monkeypatch.setattr(s, "embedding_model_en", "en-small")
     monkeypatch.setattr(s, "pinecone_api_key_en", "EN_KEY")
     monkeypatch.setattr(s, "pinecone_index_en", "askthymonk-en")
+    monkeypatch.setattr(s, "top_k_en", 6)
 
 
 def test_hindi_target_is_self_consistent(monkeypatch):
     _set_targets(monkeypatch)
     t = config.retrieval_target("hi")
-    assert (t.embedding_model, t.pinecone_api_key, t.pinecone_index) == (
+    assert (t.embedding_model, t.pinecone_api_key, t.pinecone_index, t.top_k) == (
         "hi-large",
         "HI_KEY",
         "hindi-index",
+        3,
     )
 
 
 def test_english_target_is_self_consistent(monkeypatch):
     _set_targets(monkeypatch)
     t = config.retrieval_target("en")
-    assert (t.embedding_model, t.pinecone_api_key, t.pinecone_index) == (
+    assert (t.embedding_model, t.pinecone_api_key, t.pinecone_index, t.top_k) == (
         "en-small",
         "EN_KEY",
         "askthymonk-en",
+        6,
     )
 
 

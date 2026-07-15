@@ -147,7 +147,8 @@ This path never touches OpenAI or Pinecone, so it works even without API keys.
 | `SUPPORTED_LANGUAGES` | `["hi"]` | Languages the app may offer |
 | `CORS_ORIGINS` | `*` | Allowed CORS origins |
 | `RATE_LIMIT` | `20/minute` | Per-IP limit on `/api/wisdom` |
-| `TOP_K` | `3` | Chunks retrieved per query |
+| `TOP_K` | `3` | Chunks retrieved per query (Hindi) |
+| `TOP_K_EN` | `6` | Chunks retrieved per query (English — higher; `-3-small` returns more diffuse passages) |
 | `API_SHARED_SECRET` | *(empty)* | If set, `/api/wisdom` requires a matching `X-API-Key` header |
 
 ## Tests

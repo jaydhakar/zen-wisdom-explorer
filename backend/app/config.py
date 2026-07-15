@@ -74,7 +74,12 @@ class Settings:
         self.supported_languages = _parse_languages(os.getenv("SUPPORTED_LANGUAGES"))
         self.cors_origins = _parse_origins(os.getenv("CORS_ORIGINS", "*"))
         self.rate_limit = os.getenv("RATE_LIMIT", "20/minute")
+        # Chunks retrieved per query, per language. English uses a higher default
+        # because text-embedding-3-small returns lower-scoring, more diffuse
+        # passages — at top_k=3 the grounded answer is often present but too
+        # diluted for the model to ground on; 6 reliably gives enough signal.
         self.top_k = int(os.getenv("TOP_K", "3"))
+        self.top_k_en = int(os.getenv("TOP_K_EN", "6"))
         # Optional shared secret. When set, /api/wisdom requires a matching
         # X-API-Key header. Empty (default) disables the check for local dev.
         self.api_shared_secret = os.getenv("API_SHARED_SECRET", "")
@@ -104,11 +109,12 @@ class RetrievalTarget:
     embedding_model: str
     pinecone_api_key: str
     pinecone_index: str
+    top_k: int
 
 
 def retrieval_target(language: str) -> RetrievalTarget:
-    """Resolve the correct (embedding model, Pinecone account, index) for a
-    language. Anything other than "en" uses the Hindi/default target."""
+    """Resolve the correct (embedding model, Pinecone account, index, top_k) for
+    a language. Anything other than "en" uses the Hindi/default target."""
     settings = get_settings()
     if language == "en":
         return RetrievalTarget(
@@ -116,12 +122,14 @@ def retrieval_target(language: str) -> RetrievalTarget:
             embedding_model=settings.embedding_model_en,
             pinecone_api_key=settings.pinecone_api_key_en,
             pinecone_index=settings.pinecone_index_en,
+            top_k=settings.top_k_en,
         )
     return RetrievalTarget(
         language=DEFAULT_LANGUAGE,
         embedding_model=settings.embedding_model,
         pinecone_api_key=settings.pinecone_api_key,
         pinecone_index=settings.pinecone_index,
+        top_k=settings.top_k,
     )
 
 

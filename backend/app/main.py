@@ -117,8 +117,9 @@ def wisdom(payload: WisdomRequest, request: Request) -> WisdomResponse:
     try:
         # Step 1: embed the question with the language's model.
         vector = embed_question(question, target.embedding_model)
-        # Step 2: query that same language's Pinecone account/index (default ns).
-        matches = query_index(target.pinecone_api_key, target.pinecone_index, vector, settings.top_k)
+        # Step 2: query that same language's Pinecone account/index (default ns),
+        # with that language's top_k.
+        matches = query_index(target.pinecone_api_key, target.pinecone_index, vector, target.top_k)
     except RuntimeError as exc:
         # Missing configuration (e.g. an API key or index not set).
         logger.error("Configuration error: %s", exc)
