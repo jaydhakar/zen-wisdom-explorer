@@ -28,6 +28,7 @@ class WisdomRequest(BaseModel):
 class WisdomResponse(BaseModel):
     answer: str
     book: str | None = None
+    source: str | None = None
     language: str
 
 

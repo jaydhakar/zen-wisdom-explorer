@@ -15,6 +15,7 @@ export type LanguageInfo = {
 export type WisdomResponse = {
   answer: string;
   book: string | null;
+  source: string | null;
   language: string;
 };
 

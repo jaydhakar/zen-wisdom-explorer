@@ -19,7 +19,10 @@ export function MessageBubble({ message }: { message: Message }) {
       >
         <Text style={[styles.text, message.error && styles.errorText]}>{message.text}</Text>
         {!isUser && !message.error && message.book ? (
-          <Text style={styles.book}>— {formatBookTitle(message.book)}</Text>
+          <Text style={styles.book}>
+            — {message.source ? `${message.source} · ` : ""}
+            {formatBookTitle(message.book)}
+          </Text>
         ) : null}
       </View>
     </View>

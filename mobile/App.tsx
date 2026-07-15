@@ -82,7 +82,7 @@ export default function App() {
       const res = await askWisdom(question, selected || "hi", history);
       setMessages((prev) => [
         ...prev,
-        { id: makeId(), role: "assistant", text: res.answer, book: res.book },
+        { id: makeId(), role: "assistant", text: res.answer, book: res.book, source: res.source },
       ]);
       // Auto-play the answer aloud in the selected language.
       speakAnswer(res.answer, selected || "hi");

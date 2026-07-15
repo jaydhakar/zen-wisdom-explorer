@@ -6,6 +6,8 @@ export type Message = {
   text: string;
   /** Cited book title, for assistant answers only. */
   book?: string | null;
+  /** Cited source (e.g. "Osho"), shown alongside the book. */
+  source?: string | null;
   /** Marks an assistant message that reports an error rather than an answer. */
   error?: boolean;
 };

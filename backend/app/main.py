@@ -119,7 +119,7 @@ def wisdom(payload: WisdomRequest, request: Request) -> WisdomResponse:
     # built up gradually across several messages is still caught.
     crisis_scan_text = " ".join([h["question"] for h in history] + [question])
     if is_crisis(crisis_scan_text):
-        return WisdomResponse(answer=crisis_response(language), book=None, language=language)
+        return WisdomResponse(answer=crisis_response(language), book=None, source=None, language=language)
 
     # Select the embedding model AND the Pinecone account/index as one matched
     # pair for this language — embedding must use the same model the target index
@@ -155,7 +155,7 @@ def wisdom(payload: WisdomRequest, request: Request) -> WisdomResponse:
 
     # Graceful decline when nothing relevant is retrieved (localized, no book).
     if not matches:
-        return WisdomResponse(answer=fallback_message(language), book=None, language=language)
+        return WisdomResponse(answer=fallback_message(language), book=None, source=None, language=language)
 
     try:
         # Step 4: ground an answer in the retrieved passages (with prior turns
@@ -169,6 +169,12 @@ def wisdom(payload: WisdomRequest, request: Request) -> WisdomResponse:
     # message and never cite a book (the sentinel is language-independent, so
     # this detection works regardless of the answer language).
     if is_no_answer(answer):
-        return WisdomResponse(answer=fallback_message(language), book=None, language=language)
+        return WisdomResponse(answer=fallback_message(language), book=None, source=None, language=language)
 
-    return WisdomResponse(answer=answer, book=matches[0].get("book") or None, language=language)
+    top = matches[0]
+    return WisdomResponse(
+        answer=answer,
+        book=top.get("book") or None,
+        source=top.get("source") or None,
+        language=language,
+    )

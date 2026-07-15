@@ -48,6 +48,7 @@ def query_index(api_key: str, index_name: str, vector: list[float], top_k: int) 
             {
                 "score": score,
                 "book": (metadata or {}).get("book", "") or "",
+                "source": (metadata or {}).get("source", "") or "",
                 "text": (metadata or {}).get("text", "") or "",
             }
         )

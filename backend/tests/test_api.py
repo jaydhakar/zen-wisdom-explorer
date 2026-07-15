@@ -20,7 +20,9 @@ def _stub_retrieval(monkeypatch):
     monkeypatch.setattr(main.settings, "api_shared_secret", "")
     monkeypatch.setattr(main, "embed_question", lambda text, model: [0.0, 0.1])
     monkeypatch.setattr(
-        main, "query_index", lambda api_key, index, vec, k: [{"score": 0.5, "book": "Some Book", "text": "..."}]
+        main,
+        "query_index",
+        lambda api_key, index, vec, k: [{"score": 0.5, "book": "Some Book", "source": "Osho", "text": "..."}],
     )
 
 
@@ -44,6 +46,7 @@ def test_crisis_question_short_circuits(monkeypatch) -> None:
     assert res.status_code == 200
     body = res.json()
     assert body["book"] is None
+    assert body["source"] is None
     assert "1800-599-0019" in body["answer"]  # KIRAN helpline present
 
 
@@ -132,16 +135,18 @@ def test_sentinel_maps_to_localized_fallback_and_nulls_book(monkeypatch, languag
     assert res.status_code == 200
     body = res.json()
     assert body["book"] is None
+    assert body["source"] is None  # decline nulls source too
     assert body["answer"] == fallback_message(language)
 
 
-def test_real_answer_keeps_its_book(monkeypatch) -> None:
+def test_real_answer_keeps_its_book_and_source(monkeypatch) -> None:
     _stub_retrieval(monkeypatch)
     monkeypatch.setattr(main, "generate_answer", lambda *a, **k: "A real grounded reflection.")
     res = client.post("/api/wisdom", json={"question": "what is meditation?", "language": "en"})
     body = res.json()
     assert body["answer"] == "A real grounded reflection."
     assert body["book"] == "Some Book"
+    assert body["source"] == "Osho"
 
 
 def test_secret_gate_rejects_without_header(monkeypatch) -> None:
