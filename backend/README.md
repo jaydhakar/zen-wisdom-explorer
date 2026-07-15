@@ -142,13 +142,13 @@ This path never touches OpenAI or Pinecone, so it works even without API keys.
 | `PINECONE_INDEX` | — | **Hindi** index name (required) |
 | `EMBEDDING_MODEL` | `text-embedding-3-large` | **Hindi** query embedding model (3072-dim) |
 | `PINECONE_API_KEY_EN` | — | **English** Pinecone account auth (separate account) |
-| `PINECONE_INDEX_EN` | `askthymonk-en` | **English** index name |
-| `EMBEDDING_MODEL_EN` | `text-embedding-3-small` | **English** query embedding model (1536-dim) |
+| `PINECONE_INDEX_EN` | `askthymonk-en-large` | **English** index name |
+| `EMBEDDING_MODEL_EN` | `text-embedding-3-large` | **English** query embedding model (3072-dim) |
 | `SUPPORTED_LANGUAGES` | `["hi"]` | Languages the app may offer |
 | `CORS_ORIGINS` | `*` | Allowed CORS origins |
 | `RATE_LIMIT` | `20/minute` | Per-IP limit on `/api/wisdom` |
 | `TOP_K` | `3` | Chunks retrieved per query (Hindi) |
-| `TOP_K_EN` | `6` | Chunks retrieved per query (English — higher; `-3-small` returns more diffuse passages) |
+| `TOP_K_EN` | `3` | Chunks retrieved per query (English) |
 | `API_SHARED_SECRET` | *(empty)* | If set, `/api/wisdom` requires a matching `X-API-Key` header |
 
 ## Tests
@@ -181,8 +181,10 @@ pair (`RetrievalTarget`) — they are never mixed.
 | `language` | Embedding model | Pinecone account / index | Namespace | Contents |
 |---|---|---|---|---|
 | `hi` | `text-embedding-3-large` (3072-dim) | original account / `PINECONE_INDEX` | default | ~75k Hindi vectors |
-| `en` | `text-embedding-3-small` (1536-dim) | separate account / `askthymonk-en` | default | 2,607 English vectors |
+| `en` | `text-embedding-3-large` (3072-dim) | separate account / `askthymonk-en-large` | default | 2,383 English vectors |
 
-> Pairing the wrong model with the wrong index (e.g. a 1536-dim English embedding
-> against the 3072-dim Hindi index) fails with a **dimension-mismatch** error —
-> which is why the model and index are resolved together, per language.
+> Both languages now use `text-embedding-3-large`. English was switched from
+> `-small` (which needed `top_k=6` to ground reliably) to `-large`, which grounds
+> at `top_k=3`. The model and index are still resolved together per language
+> (`RetrievalTarget`) — mixing a model with a mismatched-dimension index fails
+> with a **dimension-mismatch** error.
