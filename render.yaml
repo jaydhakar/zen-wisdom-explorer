@@ -1,0 +1,58 @@
+# Render Blueprint for the Ask Thy Monk FastAPI backend.
+#
+# Deploy: Render dashboard -> New + -> Blueprint -> connect this GitHub repo.
+# Render reads this file, creates the service, and PROMPTS for every env var
+# (all are sync:false, so no secrets are ever stored in this repo).
+#
+# Dependencies: the repo is uv-based (pyproject.toml), but Render's Python
+# buildpack expects requirements.txt. backend/requirements.txt mirrors the
+# runtime deps exactly and is used here. Keep it in sync on dep changes
+# (or regenerate with `uv export --no-hashes -o requirements.txt`).
+
+services:
+  - type: web
+    name: askthymonk-backend
+    runtime: python
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Bind to the port Render injects at runtime — never a hardcoded port.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # --- Secrets (enter real values in the Render dashboard) ---
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_API_KEY_EN
+        sync: false
+      # Shared-secret gate: when set, /api/wisdom requires a matching X-API-Key.
+      # The mobile app must send the SAME value via EXPO_PUBLIC_API_KEY.
+      - key: API_SHARED_SECRET
+        sync: false
+      # --- Pinecone indexes ---
+      - key: PINECONE_INDEX
+        sync: false
+      - key: PINECONE_INDEX_EN
+        sync: false
+      # --- Models ---
+      - key: EMBEDDING_MODEL
+        sync: false
+      - key: EMBEDDING_MODEL_EN
+        sync: false
+      - key: CHAT_MODEL
+        sync: false
+      # --- Retrieval ---
+      - key: TOP_K
+        sync: false
+      - key: TOP_K_EN
+        sync: false
+      # --- App behavior ---
+      - key: SUPPORTED_LANGUAGES
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: RATE_LIMIT
+        sync: false
